@@ -1,13 +1,14 @@
+// Carica le variabili d'ambiente dal file .env
 require("dotenv").config();
 
+// Importazione dei moduli necessari
 const path = require("path");
 const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 const formatMessage = require("./utils/messages");
-const createAdapter = require("@socket.io/redis-adapter").createAdapter;
+const { createAdapter } = require("@socket.io/redis-adapter");
 const redis = require("redis");
-require("dotenv").config();
 const { createClient } = redis;
 const {
   userJoin,
@@ -16,72 +17,64 @@ const {
   getRoomUsers,
 } = require("./utils/users");
 
+// Inizializza l'applicazione Express
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
-// Set static folder
+// Imposta una cartella statica per file pubblici
 app.use(express.static(path.join(__dirname, "public")));
 
+// Nome del bot utilizzato per i messaggi automatici
 const botName = "DodoBot";
 
+// Configurazione del client Redis per l'adattatore di socket.io
 (async () => {
-  pubClient = createClient({ url: process.env.REDIS_URL });
+  const pubClient = createClient({ url: process.env.REDIS_URL });
   await pubClient.connect();
-  subClient = pubClient.duplicate();
+  const subClient = pubClient.duplicate();
   io.adapter(createAdapter(pubClient, subClient));
 })();
 
-// Run when client connects
+// Gestione dell'evento di connessione di un nuovo client
 io.on("connection", (socket) => {
-  console.log(io.of("/").adapter);
+  console.log("Nuova connessione socket stabilita");
+
+  // Ascolta l'evento 'joinRoom'
   socket.on("joinRoom", ({ username, room }) => {
     const user = userJoin(socket.id, username, room);
-
     socket.join(user.room);
 
-    // Welcome current user
-    socket.emit(
-      "message",
-      formatMessage(
-        botName,
-        "Benvenuti su DodoBot! Con grande entusiasmo, vi diamo il benvenuto nel distinto universo di DodoBot. È nostro desiderio informarvi che, per ogni decina di caratteri digitati, verrà applicata una tariffa simbolica di 0,50€/euro a beneficio dell'associazione Dodobusiness Onlus. Si prega di notare che questa tariffa è cumulativa fino a un massimo di 100.000,00€/euro. Desideriamo sottolineare l'importanza del rispetto degli accordi presi. In caso di mancato pagamento al termine del servizio, verranno attivate procedure conformi alle normative vigenti per garantire il recupero dei crediti a cura dei mercenari da noi assoldati Mohamed Ibrahim e Sewehli Jalloud."
-      )
-    );
+    // Invia un messaggio di benvenuto all'utente corrente
+    socket.emit("message", formatMessage(botName, "Benvenuto nella chat!"));
 
-    // Broadcast when a user connects
+    // Invia un messaggio agli altri utenti nella stanza per avvisare dell'arrivo di un nuovo utente
     socket.broadcast
       .to(user.room)
-      .emit(
-        "message",
-        formatMessage(botName, `${user.username} è entrato nella chat`)
-      );
+      .emit("message", formatMessage(botName, `${user.username} è entrato nella chat`));
 
-    // Send users and room info
+    // Invia informazioni sugli utenti e la stanza
     io.to(user.room).emit("roomUsers", {
       room: user.room,
       users: getRoomUsers(user.room),
     });
   });
 
-  // Listen for chatMessage
+  // Ascolta l'evento 'chatMessage'
   socket.on("chatMessage", (msg) => {
     const user = getCurrentUser(socket.id);
-
     io.to(user.room).emit("message", formatMessage(user.username, msg));
   });
 
-  // Runs when client disconnects
+  // Gestione della disconnessione di un client
   socket.on("disconnect", () => {
     const user = userLeave(socket.id);
 
     if (user) {
-      io.to(user.room).emit(
-        "message",
-        formatMessage(botName, `${user.username} è uscito dalla chat`)
-      );
+      // Invia un messaggio agli altri utenti nella stanza per avvisare dell'uscita di un utente
+      io.to(user.room).emit("message", formatMessage(botName, `${user.username} è uscito dalla chat`));
 
-      // Send users and room info
+      // Aggiorna l'elenco degli utenti nella stanza
       io.to(user.room).emit("roomUsers", {
         room: user.room,
         users: getRoomUsers(user.room),
@@ -90,9 +83,11 @@ io.on("connection", (socket) => {
   });
 });
 
+// Imposta la porta e l'indirizzo IP per il server
 const PORT = process.env.PORT || 3000;
 const IP_ADDRESS = process.env.IP_ADDRESS || "127.0.0.1";
 
+// Avvia il server
 server.listen(PORT, () => {
   console.log(`Il server è disponibile su http://${IP_ADDRESS}:${PORT}`);
 });

@@ -1,55 +1,56 @@
+// Riferimenti agli elementi DOM della chat
 const chatForm = document.getElementById("chat-form");
 const chatMessages = document.querySelector(".chat-messages");
 const roomName = document.getElementById("room-name");
 const userList = document.getElementById("users");
 
-// Get username and room from URL
+// Estrae username e room dall'URL
 const { username, room } = Qs.parse(location.search, {
   ignoreQueryPrefix: true,
 });
 
+// Connessione al server Socket.io
 const socket = io();
 
-// Join chatroom
+// Richiede l'ingresso in una stanza di chat
 socket.emit("joinRoom", { username, room });
 
-// Get room and users
+// Ricezione dati stanza e utenti dal server
 socket.on("roomUsers", ({ room, users }) => {
   outputRoomName(room);
   outputUsers(users);
 });
 
-// Message from server
+// Ricezione di messaggi dal server
 socket.on("message", (message) => {
   console.log(message);
   outputMessage(message);
 
-  // Scroll down
+  // Scorre automaticamente in basso al ricevimento di un nuovo messaggio
   chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-// Message submit
+// Gestione dell'invio di messaggi
 chatForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  // Get message text
+  // Ottiene il testo del messaggio
   let msg = e.target.elements.msg.value;
-
   msg = msg.trim();
 
   if (!msg) {
     return false;
   }
 
-  // Emit message to server
+  // Invia il messaggio al server
   socket.emit("chatMessage", msg);
 
-  // Clear input
+  // Pulisce il campo di input dopo l'invio
   e.target.elements.msg.value = "";
   e.target.elements.msg.focus();
 });
 
-// Output message to DOM
+// Visualizza i messaggi nella chat
 function outputMessage(message) {
   const div = document.createElement("div");
   div.classList.add("message");
@@ -65,12 +66,12 @@ function outputMessage(message) {
   document.querySelector(".chat-messages").appendChild(div);
 }
 
-// Add room name to DOM
+// Aggiorna il nome della stanza nella DOM
 function outputRoomName(room) {
   roomName.innerText = room;
 }
 
-// Add users to DOM
+// Aggiorna la lista degli utenti nella DOM
 function outputUsers(users) {
   userList.innerHTML = "";
   users.forEach((user) => {
@@ -80,11 +81,10 @@ function outputUsers(users) {
   });
 }
 
-// Prompt the user before leave chat room
+// Conferma prima di uscire dalla stanza di chat
 document.getElementById("leave-btn").addEventListener("click", () => {
   const leaveRoom = confirm("Sei sicuro di voler uscire dalla stanza?");
   if (leaveRoom) {
     window.location = "../index.html";
-  } else {
   }
 });
