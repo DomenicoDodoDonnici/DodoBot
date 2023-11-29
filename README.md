@@ -1,6 +1,6 @@
-# ChatCord App
+## ChatCord App
 
-Realtime chat app with websockets using Node.js, Express and Socket.io with Vanilla JS on the frontend with a custom UI
+ChatCord è un'applicazione di chat in tempo reale sviluppata da Domenico Donnici e Daniel Hofman che utilizza websockets. È stata sviluppata con Node.js, Express e Socket.io, e impiega JavaScript Vanilla per il frontend con un'interfaccia utente personalizzata.
 
 ## Usage
 
@@ -8,5 +8,15 @@ Realtime chat app with websockets using Node.js, Express and Socket.io with Vani
 npm install
 npm run dev
 
-Go to localhost:3000
+Vai su localhost:3000
 ```
+
+## Contenuti aggiuntivi (Per far funzionare il progetto)
+
+Contenuto .env:
+PORT=3000
+IP_ADDRESS=127.0.0.1
+REDIS_URL=redis://127.0.0.1:6379
+
+Download Redis:
+https://sourceforge.net/projects/redis-for-windows.mirror/
