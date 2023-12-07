@@ -1,6 +1,6 @@
-## ChatCord App
+## DodoBot App
 
-ChatCord è un'applicazione di chat in tempo reale sviluppata da Domenico Donnici e Daniel Hofman che utilizza websockets. È stata sviluppata con Node.js, Express e Socket.io, e impiega JavaScript Vanilla per il frontend con un'interfaccia utente personalizzata.
+DodoBot è un'applicazione di chat in tempo reale sviluppata da Domenico Donnici e Daniel Hofman che utilizza websockets. È stata sviluppata con Node.js, Express e Socket.io, e impiega JavaScript Vanilla per il frontend con un'interfaccia utente personalizzata.
 
 ## Usage
 
